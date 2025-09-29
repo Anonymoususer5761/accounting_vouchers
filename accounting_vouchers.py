@@ -25,6 +25,7 @@ def main(argv):
     dfs = []
     for df in wb.values():
         # Grabs bank name and removes any rows with previously processed bank names in the ledger name column.
+        df = df.loc[:, [column for column in df.columns if column[:7] != "Unnamed"]]
         bank_name = df.iloc[1:2, -1].values[0] if df.columns[-1] == 'Bank' else df.columns[-1]
         df = df[~(df[column_names.ln].isin(banks['Bank']))]
 

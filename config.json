@@ -1,0 +1,18 @@
+{
+    "column_names": [
+        "Date",
+        "Type",
+        "Name",
+        "Amount",
+        "Dr_Cr",
+        "Narration"
+    ],
+    "column_names_alt": [
+        "Voucher Date",
+        "Voucher Type Name",
+        "Ledger Name",
+        "Ledger Amount",
+        "Ledger Amount Dr/Cr",
+        "Voucher Narration"
+    ]
+}

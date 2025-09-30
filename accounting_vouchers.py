@@ -51,20 +51,6 @@ def main(argv):
                 above = df.loc[i - 1, column_names.dr_cr]
                 df.loc[i, column_names.dr_cr] = invert[above]
 
-        # Generates summary for processed banks and sheets.
-        # total_credit = df[df.loc[:, column_names.dr_cr] == 'Cr'][column_names.la].sum()
-        # total_debit = df[df.loc[:, column_names.dr_cr] == 'Dr'][column_names.la].sum()
-        # closing_balance = opening_balance + total_credit - total_debit
-        # formula = f"Opening Balance ({opening_balance}) + Total Credit ({total_credit}) - Total Debit ({total_debit}) = Closing Balance ({closing_balance})"
-        # banks = pd.concat([banks, pd.DataFrame({
-        #     "Bank": [bank_name],
-        #     "Opening Balance": [opening_balance],
-        #     "Total Credit": [total_credit],
-        #     "Total Debit": [total_debit],
-        #     "Closing Balance": [closing_balance],
-        #     "Formula": [formula],
-        # })], ignore_index=True)
-
         dfs.append(df)
 
     # Concatenates all sheets into a single sheet.

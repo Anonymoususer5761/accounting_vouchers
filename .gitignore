@@ -1,7 +1,7 @@
 *.xlsx
-venv
-winvenv
-workbooks
-results
-bank_statements
+venv/
+winvenv/
+workbooks/
+results/
+bank_statements/
 __pycache__

@@ -13,29 +13,23 @@ def main(argv):
  
     wb = get_data(file_path)
 
-    banks = pd.DataFrame({
-        "Bank": [],
-        "Opening Balance": [],
-        "Total Credit": [],
-        "Total Debit": [],
-        "Closing Balance": [],
-        "Formula": [],
-    })
-
     dfs = []
+    bank_names = []
+    opening_balances = {}
     for df in wb.values():
         # Grabs bank name and removes any rows with previously processed bank names in the ledger name column.
         df = df.loc[:, [column for column in df.columns if column[:7] != "Unnamed"]]
-        bank_name = df.iloc[1:2, -1].values[0] if df.columns[-1] == 'Bank' else df.columns[-1]
-        df = df[~(df[column_names.ln].isin(banks['Bank']))]
+        bank_name = (df.iloc[1:2, -1].values[0] if df.columns[-1] == 'Bank' else df.columns[-1])
+        bank_names.append(bank_name)
+        df = df[~(df[column_names.ln].isin(bank_names))]
 
         # Grabs the Opening Balance and removes the first row.
         opening_balance_row = df[df.loc[:, column_names.ln] == 'Opening Balance'][column_names.la]
-        opening_balance = opening_balance_row.values[0] if not opening_balance_row.empty else pd.NA
-        if not opening_balance is pd.NA:
+        opening_balances = dict(opening_balances, **{bank_name: opening_balance_row.values[0] if not opening_balance_row.empty else pd.NA})
+        if not opening_balances[bank_name] is pd.NA:
             df = df[~(df.loc[:, column_names.ln] == "Opening Balance")]
         else:
-            opening_balance = 0
+            opening_balances[bank_name] = 0
 
         # Removes all unecessary rows and columns.
         df = df.dropna(how='all', axis=0)
@@ -58,34 +52,58 @@ def main(argv):
                 df.loc[i, column_names.dr_cr] = invert[above]
 
         # Generates summary for processed banks and sheets.
-        total_credit = df[df.loc[:, column_names.dr_cr] == 'Cr'][column_names.la].sum()
-        total_debit = df[df.loc[:, column_names.dr_cr] == 'Dr'][column_names.la].sum()
-        closing_balance = opening_balance + total_credit - total_debit
-        formula = f"Opening Balance ({opening_balance}) + Total Credit ({total_credit}) - Total Debit ({total_debit}) = Closing Balance ({closing_balance})"
-        banks = pd.concat([banks, pd.DataFrame({
-            "Bank": [bank_name],
-            "Opening Balance": [opening_balance],
-            "Total Credit": [total_credit],
-            "Total Debit": [total_debit],
-            "Closing Balance": [closing_balance],
-            "Formula": [formula],
-        })], ignore_index=True)
+        # total_credit = df[df.loc[:, column_names.dr_cr] == 'Cr'][column_names.la].sum()
+        # total_debit = df[df.loc[:, column_names.dr_cr] == 'Dr'][column_names.la].sum()
+        # closing_balance = opening_balance + total_credit - total_debit
+        # formula = f"Opening Balance ({opening_balance}) + Total Credit ({total_credit}) - Total Debit ({total_debit}) = Closing Balance ({closing_balance})"
+        # banks = pd.concat([banks, pd.DataFrame({
+        #     "Bank": [bank_name],
+        #     "Opening Balance": [opening_balance],
+        #     "Total Credit": [total_credit],
+        #     "Total Debit": [total_debit],
+        #     "Closing Balance": [closing_balance],
+        #     "Formula": [formula],
+        # })], ignore_index=True)
 
         dfs.append(df)
 
     # Concatenates all sheets into a single sheet.
-    workbook = pd.concat([*dfs], ignore_index=True)
-    workbook = workbook.dropna(how='all', axis=1)
-    workbook = workbook.dropna(how='all', axis=0).reset_index(drop=True)
+    vouchers = pd.concat([*dfs], ignore_index=True)
+    vouchers = vouchers.dropna(how='all', axis=1)
+    vouchers = vouchers.dropna(how='all', axis=0).reset_index(drop=True)
 
     # Creates empty rows.
-    empty_rows = pd.DataFrame(to_be_removed, index=range(1, len(workbook), 2), columns=workbook.columns)
-    workbook = pd.concat([workbook, empty_rows]).sort_index(kind='mergesort').reset_index(drop=True)
+    empty_rows = pd.DataFrame(to_be_removed, index=range(1, len(vouchers), 2), columns=vouchers.columns)
+    vouchers = pd.concat([vouchers, empty_rows]).sort_index(kind='mergesort').reset_index(drop=True)
 
     # Cleans up filler values.
-    workbook.replace(to_be_removed, pd.NA, inplace=True)
+    vouchers.replace(to_be_removed, pd.NA, inplace=True)
 
-    save_data(workbook, banks, save_path)
+    banks = pd.DataFrame({
+        "Bank": [],
+        "Opening Balance": [],
+        "Total Debit": [],
+        "Total Credit": [],
+        "Total Credit and Debit": [],
+        "Closing Balance": [],
+        "Formula": [],
+    })
+
+    for bank_name in bank_names:
+        total_dr = vouchers[(vouchers.loc[:, column_names.ln] == clean(bank_name)) & (vouchers.loc[:, column_names.dr_cr] == "Dr")][column_names.la].sum()
+        total_cr = vouchers[(vouchers.loc[:, column_names.ln] == clean(bank_name)) & (vouchers.loc[:, column_names.dr_cr] == "Cr")][column_names.la].sum()
+        total_cr_dr = total_dr - total_cr
+        banks = pd.concat([banks, pd.DataFrame({
+            "Bank": [bank_name],
+            "Opening Balance": [opening_balances[bank_name]],
+            "Total Debit": [total_dr],
+            "Total Credit": [total_cr],
+            "Total Credit and Debit": [total_cr_dr],
+            "Closing Balance": [opening_balances[bank_name] + total_cr_dr],
+            "Formula": [f"Closing Balance ({opening_balances[bank_name] + total_cr_dr})Opening Balance ({opening_balances[bank_name]}) + Total Debit ({total_dr}) - Total Credit ({total_cr})"]
+        })], ignore_index=True)
+
+    save_data(vouchers, banks, save_path)
     sys.exit(0)
 
 

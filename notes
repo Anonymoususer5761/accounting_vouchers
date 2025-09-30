@@ -1,0 +1,3 @@
+=SUMIFS(bank14[Amount],bank14[Dr_Cr],"Dr",bank14[Name],"Canara Bank A/c.")-SUMIFS(bank14[Amount],bank14[Dr_Cr],"Cr",bank14[Name],"Canara Bank A/c.")
+
+PMS Accounting Vouchers.xlsx

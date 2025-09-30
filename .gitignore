@@ -1,0 +1,6 @@
+*.xlsx
+venv
+winvenv
+workbooks
+results
+bank_statements

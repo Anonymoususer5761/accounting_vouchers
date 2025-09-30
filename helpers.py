@@ -23,7 +23,7 @@ column_names = namedtuple(
     ],
 )
 
-column_names = column_names(*config["column_names"])
+column_names = column_names(*config["column_names2"])
 
 def clean(bank):
     return bank if "A/c" in bank or "Account" in bank or "A/c." in bank else f"{bank} A/c"

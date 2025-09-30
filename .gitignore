@@ -4,3 +4,4 @@ winvenv
 workbooks
 results
 bank_statements
+__pycache__

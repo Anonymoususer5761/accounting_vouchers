@@ -4,7 +4,7 @@ from openpyxl import Workbook
 import os.path
 import sys
 
-from helpers import column_names, clean, invert, to_be_removed
+from helpers import column_names, invert, to_be_removed
 
 pd.set_option('future.no_silent_downcasting', True)
 
@@ -44,7 +44,7 @@ def main(argv):
         df = pd.concat([df, empty_rows]).sort_index(kind='mergesort').reset_index(drop=True)
 
         # Appropriately fills in the empty rows.
-        df.loc[:, column_names.ln] = df.loc[:, column_names.ln].replace(to_be_removed, clean(bank_name))
+        df.loc[:, column_names.ln] = df.loc[:, column_names.ln].replace(to_be_removed, bank_name)
         df.loc[:, column_names.la] = df.loc[:, column_names.la].replace(to_be_removed, pd.NA).ffill()
         for i in range(len(df)):
             if df.loc[i, column_names.dr_cr] == to_be_removed:
@@ -76,8 +76,8 @@ def main(argv):
     })
 
     for bank_name in bank_names:
-        total_dr = vouchers[(vouchers.loc[:, column_names.ln] == clean(bank_name)) & (vouchers.loc[:, column_names.dr_cr] == "Dr")][column_names.la].sum()
-        total_cr = vouchers[(vouchers.loc[:, column_names.ln] == clean(bank_name)) & (vouchers.loc[:, column_names.dr_cr] == "Cr")][column_names.la].sum()
+        total_dr = vouchers[(vouchers.loc[:, column_names.ln] == bank_name) & (vouchers.loc[:, column_names.dr_cr] == "Dr")][column_names.la].sum()
+        total_cr = vouchers[(vouchers.loc[:, column_names.ln] == bank_name) & (vouchers.loc[:, column_names.dr_cr] == "Cr")][column_names.la].sum()
         total_cr_dr = total_dr - total_cr
         banks = pd.concat([banks, pd.DataFrame({
             "Bank": [bank_name],

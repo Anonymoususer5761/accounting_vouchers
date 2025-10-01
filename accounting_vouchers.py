@@ -86,7 +86,7 @@ def main(argv):
             "Total Credit": [total_cr],
             "Total Credit and Debit": [total_cr_dr],
             "Closing Balance": [opening_balances[bank_name] + total_cr_dr],
-            "Formula": [f"Closing Balance ({opening_balances[bank_name] + total_cr_dr})Opening Balance ({opening_balances[bank_name]}) + Total Debit ({total_dr}) - Total Credit ({total_cr})"]
+            "Formula": [f"Closing Balance ({opening_balances[bank_name] + total_cr_dr}) = Opening Balance ({opening_balances[bank_name]}) + Total Debit ({total_dr}) - Total Credit ({total_cr})"]
         })], ignore_index=True)
 
     save_data(vouchers, banks, save_path)
@@ -115,7 +115,9 @@ def parse_paths(argv):
         print(f"Error: Could not find '{input_path}'")
         sys.exit(3)
     if not os.path.exists(output_path):
-        Workbook(output_path).save(output_path)
+        wb = Workbook()
+        wb.active.title = "Accounting Vouchers"
+        wb.save(output_path)
 
     return input_path, output_path
 

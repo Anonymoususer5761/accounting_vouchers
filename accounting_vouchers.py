@@ -3,6 +3,7 @@ from openpyxl import Workbook
 
 import os.path
 import sys
+from decimal import Decimal
 
 from helpers import column_names, invert, to_be_removed
 
@@ -76,17 +77,19 @@ def main(argv):
     })
 
     for bank_name in bank_names:
-        total_dr = vouchers[(vouchers.loc[:, column_names.ln] == bank_name) & (vouchers.loc[:, column_names.dr_cr] == "Dr")][column_names.la].sum()
-        total_cr = vouchers[(vouchers.loc[:, column_names.ln] == bank_name) & (vouchers.loc[:, column_names.dr_cr] == "Cr")][column_names.la].sum()
+        total_dr = Decimal(str(vouchers[(vouchers.loc[:, column_names.ln] == bank_name) & (vouchers.loc[:, column_names.dr_cr] == "Dr")][column_names.la].sum()))
+        total_cr = Decimal(str(vouchers[(vouchers.loc[:, column_names.ln] == bank_name) & (vouchers.loc[:, column_names.dr_cr] == "Cr")][column_names.la].sum()))
         total_cr_dr = total_dr - total_cr
+        opening_balance = Decimal(str(opening_balances[bank_name]))
+        closing_balance = opening_balance + total_cr_dr
         banks = pd.concat([banks, pd.DataFrame({
             "Bank": [bank_name],
-            "Opening Balance": [opening_balances[bank_name]],
-            "Total Debit": [total_dr],
-            "Total Credit": [total_cr],
-            "Total Credit and Debit": [total_cr_dr],
-            "Closing Balance": [opening_balances[bank_name] + total_cr_dr],
-            "Formula": [f"Closing Balance ({opening_balances[bank_name] + total_cr_dr}) = Opening Balance ({opening_balances[bank_name]}) + Total Debit ({total_dr}) - Total Credit ({total_cr})"]
+            "Opening Balance": [round(opening_balance, 2)],
+            "Total Debit": [round(total_dr, 2)],
+            "Total Credit": [round(total_cr, 2)],
+            "Total Credit and Debit": [round(total_cr_dr, 2)],
+            "Closing Balance": [round(closing_balance, 2)],
+            "Formula": [f"Closing Balance ({round(closing_balance, 2)}) = Opening Balance ({round(opening_balance, 2)}) + Total Debit ({round(total_dr, 2)}) - Total Credit ({round(total_cr, 2)})"]
         })], ignore_index=True)
 
     save_data(vouchers, banks, save_path)
